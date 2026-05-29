@@ -1,27 +1,31 @@
 {% extends "base.html" %}
 {% block title %}註冊 - 帝云{% endblock %}
 {% block content %}
-<div class="auth-wrap">
-  <div class="auth-card">
-    <div class="auth-header">
-      <div class="auth-logo">◈</div>
-      <h2 class="auth-title">帝云</h2>
-      <p class="auth-subtitle">建立新帳號</p>
+<div class="min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <div class="auth-logo w-16 h-16 mx-auto mb-2 rounded-xl flex items-center justify-center">◈</div>
+      <h2 class="text-lg font-semibold mb-1">帝云</h2>
+      <p class="text-sm text-secondary">建立新帳號</p>
     </div>
-    {% if error %}<div class="msg msg-error">{{ error }}</div>{% endif %}
-    {% if success %}<div class="msg msg-success">{{ success }}</div>{% endif %}
-    <form method="post" action="/register">
-      <div class="field">
-        <label class="field-label">Email</label>
-        <input class="input" type="email" name="email" required placeholder="you@example.com">
-      </div>
-      <div class="field">
-        <label class="field-label">密碼（至少 6 碼）</label>
-        <input class="input" type="password" name="password" required minlength="6" placeholder="請輸入密碼">
-      </div>
-      <button class="btn-primary btn-full" type="submit">註冊</button>
-    </form>
-    <p class="auth-link">已經有帳號？<a href="/login">登入</a></p>
+    <div class="card p-6">
+      {% if error %}<div class="msg-error mb-4">{{ error }}</div>{% endif %}
+      {% if success %}<div class="msg-success mb-4">{{ success }}</div>{% endif %}
+      <form class="space-y-4" method="post" action="/register">
+        <div>
+          <label class="block text-sm mb-1.5 text-secondary">Email</label>
+          <input class="input" type="email" name="email" required placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div>
+          <label class="block text-sm mb-1.5 text-secondary">密碼（至少 6 碼）</label>
+          <input class="input" type="password" name="password" required minlength="6" placeholder="請輸入密碼" autocomplete="new-password">
+        </div>
+        <button class="btn-primary w-full" type="submit">註冊</button>
+      </form>
+    </div>
+    <div class="mt-6 text-center text-sm">
+      <p class="text-tertiary">已經有帳號？<a href="/login" class="text-link">登入</a></p>
+    </div>
   </div>
 </div>
 {% endblock %}

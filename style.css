@@ -214,3 +214,54 @@ body{background:var(--bg-primary);color:var(--text);font-family:'Inter',-apple-s
   .nav-inner{padding:0 16px}
   .instance-grid{grid-template-columns:1fr}
 }
+
+/* ── Incudal 風格工具類別（auth 頁面） ── */
+
+.min-h-screen{min-height:100vh}
+.flex{display:flex}
+.items-center{align-items:center}
+.justify-center{justify-content:center}
+.w-full{width:100%}
+.max-w-sm{max-width:24rem}
+.text-center{text-align:center}
+.text-lg{font-size:1.125rem;line-height:1.75rem}
+.text-sm{font-size:.875rem;line-height:1.25rem}
+.text-xs{font-size:.75rem;line-height:1rem}
+.font-semibold{font-weight:600}
+.block{display:block}
+
+.p-4{padding:1rem}
+.p-6{padding:1.5rem}
+.mb-1{margin-bottom:.25rem}
+.mb-1\\.5{margin-bottom:.375rem}
+.mb-2{margin-bottom:.5rem}
+.mb-4{margin-bottom:1rem}
+.mb-8{margin-bottom:2rem}
+.mt-6{margin-top:1.5rem}
+.mx-auto{margin-left:auto;margin-right:auto}
+
+.w-16{width:4rem}
+.h-16{height:4rem}
+.rounded-xl{border-radius:12px}
+
+.space-y-4>*+*{margin-top:1rem}
+
+.card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px}
+
+/* 文字顏色 */
+.text-secondary{color:var(--text-secondary)}
+.text-tertiary{color:var(--text-tertiary)}
+.text-link{color:var(--accent);text-decoration:none}
+.text-link:hover{text-decoration:underline}
+
+/* 訊息 */
+.msg-error{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);padding:10px 14px;border-radius:6px;font-size:.825rem;text-align:center}
+.msg-success{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);padding:10px 14px;border-radius:6px;font-size:.825rem;text-align:center}
+
+/* auth-logo */
+.auth-logo{background:var(--bg-tertiary);border:1px solid var(--border);font-size:1.5rem;color:var(--accent)}
+
+/* 按鈕 active */
+.btn-primary:active{transform:scale(.98)}
+.dark .btn-primary{box-shadow:0 1px 2px 0 rgba(0,0,0,.05)}
+.light .btn-primary{box-shadow:0 1px 2px 0 rgba(0,0,0,.05)}
