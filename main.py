@@ -249,22 +249,22 @@ async def delete_incus_instance(incus_name):
 
 # ── 路由：頁面 ──
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def index(request: Request, user=Depends(get_current_user)):
     if user:
         return RedirectResponse(url="/dashboard")
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html", {"request": request})
 
 
-@app.get("/register", response_class=HTMLResponse)
+@app.get("/register")
 async def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse(request, "register.html", {"request": request})
 
 
 @app.post("/register")
 async def register(request: Request, email: str = Form(...), password: str = Form(...)):
     if not email or not password or len(password) < 6:
-        return templates.TemplateResponse("register.html", {
+        return templates.TemplateResponse(request, "register.html", {
             "request": request, "error": "密碼至少 6 碼"
         })
     password_hash = bcrypt.hash(password)
@@ -273,15 +273,15 @@ async def register(request: Request, email: str = Form(...), password: str = For
             await db.execute("INSERT INTO users (email, password_hash) VALUES (?, ?)",
                            (email, password_hash))
             await db.commit()
-        return templates.TemplateResponse("login.html", {
+        return templates.TemplateResponse(request, "login.html", {
             "request": request, "success": "註冊成功！請登入"
         })
     except Exception as e:
         if "UNIQUE" in str(e):
-            return templates.TemplateResponse("register.html", {
+            return templates.TemplateResponse(request, "register.html", {
                 "request": request, "error": "此 Email 已註冊"
             })
-        return templates.TemplateResponse("register.html", {
+        return templates.TemplateResponse(request, "register.html", {
             "request": request, "error": "註冊失敗"
         })
 
@@ -304,19 +304,19 @@ async def verify_email(request: Request, token: str):
             "SELECT user_id FROM verify_tokens WHERE token=?", (token,))
         row2 = await cursor2.fetchone()
         if row2:
-            return templates.TemplateResponse("register.html", {
+            return templates.TemplateResponse(request, "register.html", {
                 "request": request, "error": "\u9a57\u8b49\u9023\u7d50\u5df2\u904e\u671f(24 \u5c0f\u6642)\uff0c\u8acb\u91cd\u65b0\u8a3b\u518a\u3002"
             })
-        return templates.TemplateResponse("register.html", {
+        return templates.TemplateResponse(request, "register.html", {
             "request": request, "error": "\u7121\u6548\u7684\u9a57\u8b49\u9023\u7d50\u3002"
         })
 
-@app.get("/login", response_class=HTMLResponse)
+@app.get("/login")
 async def login_page(request: Request, verified: str = ""):
     extra = {}
     if verified == "1":
         extra["success"] = "Email \u9a57\u8b49\u6210\u529f\uff01\u8acb\u767b\u5165"
-    return templates.TemplateResponse("login.html", {"request": request, **extra})
+    return templates.TemplateResponse(request, "login.html", {"request": request, **extra})
 
 
 @app.post("/login")
@@ -330,7 +330,7 @@ async def login(request: Request, account: str = Form(...), password: str = Form
                 cur2 = await db.execute("SELECT is_verified FROM users WHERE id=?", (row[0],))
                 vrow = await cur2.fetchone()
                 if not vrow or vrow[0] != 1:
-                    return templates.TemplateResponse("login.html", {
+                    return templates.TemplateResponse(request, "login.html", {
                         "request": request, "error": "\u8acb\u5148\u9a57\u8b49\u60a8\u7684 Email \u5f8c\u518d\u767b\u5165"
                     })
             token = secrets.token_hex(32)
@@ -340,7 +340,7 @@ async def login(request: Request, account: str = Form(...), password: str = Form
             resp = RedirectResponse(url="/dashboard", status_code=303)
             resp.set_cookie(key="session", value=token, max_age=86400*7, httponly=True)
             return resp
-    return templates.TemplateResponse("login.html", {
+    return templates.TemplateResponse(request, "login.html", {
         "request": request, "error": "Email 或密碼錯誤"
     })
 
@@ -352,7 +352,7 @@ async def logout(response: RedirectResponse = None):
     return resp
 
 
-@app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/dashboard")
 async def dashboard(request: Request, user=Depends(get_current_user)):
     if not user:
         return RedirectResponse(url="/login")
@@ -363,7 +363,7 @@ async def dashboard(request: Request, user=Depends(get_current_user)):
             (user["id"],))
         instances = await cursor.fetchall()
     
-    return templates.TemplateResponse("dashboard.html", {
+    return templates.TemplateResponse(request, "dashboard.html", {
         "request": request,
         "user": user,
         "instances": [
@@ -375,7 +375,7 @@ async def dashboard(request: Request, user=Depends(get_current_user)):
     })
 
 
-@app.get("/instance/{inst_id}", response_class=HTMLResponse)
+@app.get("/instance/{inst_id}")
 async def instance_detail(request: Request, inst_id: int, user=Depends(get_current_user)):
     if not user:
         return RedirectResponse(url="/login")
@@ -409,38 +409,38 @@ async def instance_detail(request: Request, inst_id: int, user=Depends(get_curre
         live = json.loads(out) if out else {}
     except: pass
     
-    return templates.TemplateResponse("instance.html", {
+    return templates.TemplateResponse(request, "instance.html", {
         "request": request, "user": user, "inst": inst, "live": live
     })
 
 
 
-@app.get("/instances/create", response_class=HTMLResponse)
+@app.get("/instances/create")
 async def create_instance_page(request: Request, user=Depends(get_current_user)):
     if not user:
         return RedirectResponse(url="/login")
-    return templates.TemplateResponse("create.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "create.html", {"request": request, "user": user})
 
 
-@app.get("/instances", response_class=HTMLResponse)
+@app.get("/instances")
 async def instances_page(request: Request, user=Depends(get_current_user)):
     if not user:
         return RedirectResponse(url="/login")
-    return templates.TemplateResponse("instances_list.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "instances_list.html", {"request": request, "user": user})
 
 
-@app.get("/wallet", response_class=HTMLResponse)
+@app.get("/wallet")
 async def wallet_page(request: Request, user=Depends(get_current_user)):
     if not user:
         return RedirectResponse(url="/login")
-    return templates.TemplateResponse("wallet.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "wallet.html", {"request": request, "user": user})
 
 
-@app.get("/transfer", response_class=HTMLResponse)
+@app.get("/transfer")
 async def transfer_page(request: Request, user=Depends(get_current_user)):
     if not user:
         return RedirectResponse(url="/login")
-    return templates.TemplateResponse("transfer.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "transfer.html", {"request": request, "user": user})
 
 
 # ── API 路由 ──
@@ -658,11 +658,11 @@ async def api_admin_users(user=Depends(get_current_user)):
 
 # ── 管理員頁面 ──
 
-@app.get("/admin", response_class=HTMLResponse)
+@app.get("/admin")
 async def admin_page(request: Request, user=Depends(get_current_user)):
     if not user or not user["is_admin"]:
         return RedirectResponse(url="/")
-    return templates.TemplateResponse("admin.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "admin.html", {"request": request, "user": user})
 
 
 # ── 啟動 ──
