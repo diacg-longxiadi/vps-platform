@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" class="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -9,6 +9,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
+<script>
+(function(){
+  var t = localStorage.getItem('theme') || 'system';
+  var r = t;
+  if (t === 'system') {
+    r = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.className = r;
+  var m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute('content', r === 'dark' ? '#0a0a0a' : '#ffffff');
+})();
+</script>
 </head>
 <body>
 <nav class="nav">
@@ -27,11 +39,25 @@
         <a href="/login" class="nav-link">登入</a>
         <a href="/register" class="btn btn-sm btn-primary">註冊</a>
       {% endif %}
+      <button class="theme-btn" onclick="toggleTheme()" aria-label="切換主題" title="切換主題">
+        <svg class="sun-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <svg class="moon-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+      </button>
     </div>
   </div>
 </nav>
 <main class="main">
 {% block content %}{% endblock %}
 </main>
+<script>
+function toggleTheme(){
+  var c = document.documentElement.className;
+  var n = c === 'dark' ? 'light' : 'dark';
+  document.documentElement.className = n;
+  localStorage.setItem('theme', n);
+  var m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute('content', n === 'dark' ? '#0a0a0a' : '#ffffff');
+}
+</script>
 </body>
 </html>
