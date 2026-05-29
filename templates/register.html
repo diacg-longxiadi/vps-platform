@@ -13,6 +13,11 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center px-4 py-10">
   <div class="mb-10 text-center">
+    <div class="mb-4">
+      <div class="w-20 h-20 mx-auto bg-gray-800 rounded-xl flex items-center justify-center">
+        <span class="text-4xl text-gray-400">◼️</span>
+      </div>
+    </div>
     <h1 class="text-3xl font-medium text-gray-100">laducnl 懷舊服</h1>
     <p class="mt-2 text-xl text-gray-400">註冊</p>
   </div>
@@ -21,39 +26,20 @@
     <!-- 邀請碼 -->
     <div class="mb-6">
       <label class="block mb-2 text-gray-300">邀請碼 <span class="text-red-500">*</span></label>
-      <input
-        type="text"
-        name="invite_code"
-        required
-        placeholder="輸入邀請碼"
-        class="input-box w-full px-4 py-3 rounded-lg text-gray-200"
-      />
+      <input type="text" name="invite_code" required placeholder="輸入邀請碼" class="input-box w-full px-4 py-3 rounded-lg text-gray-200" />
     </div>
 
     <!-- 使用者名稱 -->
     <div class="mb-6">
       <label class="block mb-2 text-gray-300">使用者名稱 <span class="text-red-500">*</span></label>
-      <input
-        type="text"
-        name="username"
-        required
-        pattern="^[a-zA-Z][a-zA-Z0-9]{2,31}$"
-        placeholder="字母開頭，3-32 個字元"
-        class="input-box w-full px-4 py-3 rounded-lg text-gray-200"
-      />
+      <input type="text" name="username" required pattern="^[a-zA-Z][a-zA-Z0-9]{2,31}$" placeholder="字母開頭，3-32 個字元" class="input-box w-full px-4 py-3 rounded-lg text-gray-200" />
     </div>
 
     <!-- 電子郵件 -->
     <div class="mb-6">
       <label class="block mb-2 text-gray-300">電子郵件 <span class="text-red-500">*</span></label>
       <div class="flex gap-3">
-        <input
-          type="text"
-          name="email_prefix"
-          required
-          placeholder="使用者名稱"
-          class="input-box flex-1 px-4 py-3 rounded-lg text-gray-200"
-        />
+        <input type="text" name="email_prefix" required placeholder="使用者名稱" class="input-box flex-1 px-4 py-3 rounded-lg text-gray-200" />
         <span class="self-center text-xl">@</span>
         <select name="email_suffix" class="input-box px-4 py-3 rounded-lg">
           <option value="qq.com">qq.com</option>
@@ -67,67 +53,32 @@
     <div class="mb-6">
       <label class="block mb-2 text-gray-300">電子郵件驗證碼 <span class="text-red-500">*</span></label>
       <div class="flex gap-3">
-        <input
-          type="text"
-          name="email_code"
-          required
-          maxlength="6"
-          placeholder="請輸入 6 位驗證碼"
-          class="input-box flex-1 px-4 py-3 rounded-lg text-gray-200"
-        />
-        <button
-          type="button"
-          id="sendCodeBtn"
-          class="bg-gray-700 hover:bg-gray-600 px-5 py-3 rounded-lg whitespace-nowrap"
-        >
-          發送驗證碼
-        </button>
+        <input type="text" name="email_code" required maxlength="6" placeholder="請輸入 6 位驗證碼" class="input-box flex-1 px-4 py-3 rounded-lg text-gray-200" />
+        <button type="button" id="sendCodeBtn" class="bg-gray-700 hover:bg-gray-600 px-5 py-3 rounded-lg whitespace-nowrap">發送驗證碼</button>
       </div>
     </div>
 
     <!-- 密碼 -->
     <div class="mb-6">
       <label class="block mb-2 text-gray-300">密碼 <span class="text-red-500">*</span></label>
-      <input
-        type="password"
-        name="password"
-        required
-        placeholder="至少 8 位，包含大小寫字母和數字"
-        class="input-box w-full px-4 py-3 rounded-lg text-gray-200"
-      />
+      <input type="password" name="password" required placeholder="至少 8 位，包含大小寫字母和數字" class="input-box w-full px-4 py-3 rounded-lg text-gray-200" />
     </div>
 
     <!-- 確認密碼 -->
     <div class="mb-6">
       <label class="block mb-2 text-gray-300">確認密碼 <span class="text-red-500">*</span></label>
-      <input
-        type="password"
-        name="confirm_password"
-        required
-        placeholder="再次輸入密碼"
-        class="input-box w-full px-4 py-3 rounded-lg text-gray-200"
-      />
+      <input type="password" name="confirm_password" required placeholder="再次輸入密碼" class="input-box w-full px-4 py-3 rounded-lg text-gray-200" />
     </div>
 
     <!-- 服務條款 -->
     <div class="mb-8 flex items-center">
       <input type="checkbox" id="agree" name="agree" required class="w-5 h-5 mr-3 accent-blue-500">
-      <label for="agree" class="text-gray-300">
-        我已閱讀並同意 <a href="#" class="text-blue-400">《服務條款》</a>
-      </label>
+      <label for="agree" class="text-gray-300">我已閱讀並同意 <a href="#" class="text-blue-400">《服務條款》</a></label>
     </div>
 
-    <!-- 註冊按鈕 -->
-    <button
-      type="submit"
-      class="w-full bg-gray-800 hover:bg-gray-700 py-4 rounded-lg text-gray-400 font-medium"
-    >
-      註冊
-    </button>
+    <button type="submit" class="w-full bg-gray-800 hover:bg-gray-700 py-4 rounded-lg text-gray-400 font-medium">註冊</button>
 
-    <p class="mt-6 text-center text-gray-500">
-      已經有帳號？<a href="/login" class="text-blue-400">登入</a>
-    </p>
+    <p class="mt-6 text-center text-gray-500">已經有帳號？<a href="/login" class="text-blue-400">登入</a></p>
   </form>
 
   <script src="/static/auth.js"></script>
@@ -138,10 +89,7 @@
     sendBtn.addEventListener("click", () => {
       const prefix = form.email_prefix.value;
       const suffix = form.email_suffix.value;
-      if (!prefix) {
-        toast("請先填寫信箱");
-        return;
-      }
+      if (!prefix) { toast("請先填寫信箱"); return; }
       startCountdown(sendBtn);
       postForm("/api/send-email-code", { email: prefix + "@" + suffix });
     });
