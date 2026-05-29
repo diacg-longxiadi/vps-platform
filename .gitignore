@@ -1,0 +1,19 @@
+# Data (user info, passwords - NEVER commit)
+data/
+instances.db
+
+# Python
+__pycache__/
+*.pyc
+venv/
+*.egg-info/
+
+# Backups
+*.bak*
+*.old
+
+# OS
+.DS_Store
+Thumbs.db
+.swp
+.swo

@@ -1,0 +1,14 @@
+[Unit]
+Description=VPS Platform (FastAPI)
+After=network.target incus.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8081
+WorkingDirectory=/opt/vps-platform
+Restart=always
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target

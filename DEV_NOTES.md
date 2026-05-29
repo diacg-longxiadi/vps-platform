@@ -236,3 +236,52 @@ cd /opt/vps-platform && python3 -m uvicorn main:app --host 0.0.0.0 --port 8081
 4. 錢包轉移功能（目前是佔位頁面）
 5. 註冊驗證信（SMTP config 已設，驗證路由已完成，但功能被簡化跳過）
 6. 未驗證郵箱不能登入的檢查
+
+---
+
+## 🧠 Hermes 分析筆記
+
+> 以下為 2026-05-29 系統分析後補充
+
+### 整體架構評價
+
+專案用 FastAPI + Jinja2 做 SSR 介面 + REST API，Incus system container 做虛擬化，HE IPv6 tunnel nsenter 直掛 — 技術路線正確，Oracle 免費機上跑輕量 VPS 平台完全可行。
+
+核心價值：在 Oracle 1C/1G 上榨出多個 IPv6 容器，配合 HE tunnel 的 routed /64 給每個容器獨立公網 IPv6。
+
+### 發現的問題
+
+1. **ip6tables quota 沒設定 alpine-box**
+   - FORWARD chain 的 quota 規則全是針對 `::5`（Incus 容器），alpine-box 直掛 `::3` 完全沒流量限制
+   - reset-quota.sh 有 `::3` 規則但實際沒插入成功（DOCKER chain 沒查到該規則）
+
+2. **容器重啟後 IPv6 自動修復缺失**
+   - nsenter 掛的 `/128` 在容器重啟後消失
+   - `api_instance_action("start")` 沒有補 nsenter + route + ip6tables
+   - 這是已知 TODO 但一直沒修
+
+3. **密碼明文存 DB**
+   - `password_hash` 欄位存的不是 hash 是明文
+   - 容器 password 用 `chpasswd` 設定後明文存 DB
+   - 雖然是系統密碼不是使用者密碼，但仍有洩漏風險
+
+4. **SESSION_SECRET 是假值**
+   - `SESSION_SECRET=secret...(32)` 是佔位符
+   - 運行中的服務必須用真實 secret，但這個真實值不在 repo 裡
+   - 需要確認真實值存在哪裡（可能寫在 main.py 已部署的版本）
+
+5. **EMail 驗證跳過但路由還在**
+   - `verify_tokens` 表已建，SMTP config 設好，但註冊流程簡化跳過驗證
+   - 路由 `/verify/{token}` 存在但實際無作用
+
+6. **殘留容器清理問題**
+   - 創建容器時若後續步驟（密碼/IPv6/DB）失敗，會留下殘留 Incus 容器
+   - 同名稱下次建立會失敗（已存在），但前置 `incus delete --force` 已加
+
+### 開發建議
+
+- **IPv6 路徑**：容器重啟→補 nsenter+route+iptables 這塊一定要做，否則容器重啟即失聯
+- **配額系統**：alpine-box 的 quota 要修，可整合到 container-monitor 面板
+- **密碼管理**：密碼改用容器啟動腳本傳遞，或至少用環境變數而非 DB 明文
+- **前端**：目前是 Jinja2 SSR，如果要切 SPA 需要重構前端的 session 管理
+- **測試**：沒有測試覆蓋率，至少 Incus 操作要 mock 測試

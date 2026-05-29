@@ -119,6 +119,15 @@ def next_ipv6():
                     if addr.get("family") == "inet6" and addr.get("scope") == "global":
                         used.add(addr.get("address", "").split("/")[0])
     except: pass
+    try:
+        import sqlite3
+        db = sqlite3.connect(DB_PATH)
+        rows = db.execute("SELECT ipv6 FROM instances WHERE ipv6 IS NOT NULL AND ipv6 != ''").fetchall()
+        db.close()
+        for r in rows:
+            used.add(r[0])
+    except Exception as e:
+        print(f"[next_ipv6] db check failed: {e}")
 
     for i in range(5, 255):
         v6 = f"{HE_V6_PREFIX}::{i:x}"
@@ -198,46 +207,27 @@ async def get_current_user(request: Request):
 # ── Incus 管理 ──
 
 async def create_incus_instance(name, image="images:ubuntu/25.10", cpu=0.2, ram_mb=256, disk_gb=5, ipv6=""):
-    """透過 incus CLI 建立容器"""
-    # 建立容器
+    # 清理同名殘留容器
+    run_cmd(["incus", "delete", name, "--force"], timeout=10)
+    """透過 incus CLI 建立容器（不等待 IPv4，節省 20s）"""
     stdout, stderr, rc = run_cmd([
         "incus", "init", image, name,
         "--config", f"limits.cpu.allowance={int(cpu*100)}%",
         "--config", f"limits.memory={ram_mb}MiB",
         "--config", "security.privileged=true",
-        "--config", "user.vendor-data=",  # 空 cloud-init
+        "--config", "user.vendor-data=",
     ], timeout=120)
     if rc != 0:
         return False, stderr or stdout
 
-    # 修改網路設定 - 加入 IPv6
     if ipv6:
         run_cmd(["incus", "config", "device", "set", name, "eth0", "ipv6.address", ipv6])
 
-    # 啟動
     stdout, stderr, rc = run_cmd(["incus", "start", name], timeout=60)
     if rc != 0:
         return False, stderr or stdout
 
-    # 等待取得 IPv4
-    v4 = ""
-    for _ in range(10):
-        await asyncio.sleep(2)
-        out, _, _ = run_cmd(["incus", "list", name, "--format=json", "-c4"])
-        try:
-            import json
-            data = json.loads(out)
-            if data:
-                for k, v in data[0].get("state", {}).get("network", {}).items():
-                    for addr in v.get("addresses", []):
-                        if addr.get("family") == "inet" and addr.get("scope") == "global":
-                            v4 = addr.get("address", "").split("/")[0]
-                            break
-                if v4:
-                    break
-        except: pass
-
-    return True, {"ipv4": v4, "ipv6": ipv6, "name": name}
+    return True, {"name": name}
 
 
 async def delete_incus_instance(incus_name):
@@ -493,31 +483,56 @@ async def api_create_instance(request: Request, user=Depends(get_current_user)):
     if not success:
         return JSONResponse({"error": f"建立失敗: {result}"}, status_code=500)
     
-    v4 = result.get("ipv4", "")
-    v6 = result.get("ipv6", ipv6 or "")
+    v6 = ipv6 or ""
     
-    # 設定容器 root 密碼
-    if v4:
-        for attempt in range(10):
-            await asyncio.sleep(3)
-            out, _, _ = run_cmd(["incus", "exec", incus_name, "--", "which", "passwd"], timeout=10)
-            if "passwd" in out:
-                run_cmd(["incus", "exec", incus_name, "--", "bash", "-c",
-                        f"echo 'root:{password}' | chpasswd"], timeout=10)
+    # 等待容器就緒 + 設密碼（最多等 20s）
+    password_set = False
+    for attempt in range(10):
+        await asyncio.sleep(2)
+        out, _, _ = run_cmd(["incus", "exec", incus_name, "--", "which", "passwd"], timeout=10)
+        if "passwd" in out:
+            out2, _, _ = run_cmd(["incus", "exec", incus_name, "--", "bash", "-c",
+                    f"echo 'root:{password}' | chpasswd"], timeout=10)
+            password_set = True
+            break
+    
+    if not password_set:
+        password = ""
+    
+    # 設定 IPv6 主機路由 + nsenter + ip6tables
+    if v6:
+        pid_out, _, _ = run_cmd(["incus", "info", incus_name], timeout=10)
+        pid = ""
+        for line in pid_out.split("\n"):
+            if "PID:" in line:
+                pid = line.split(":", 1)[1].strip()
                 break
+        if pid:
+            # nsenter: 加 HE IPv6 到容器 eth0（需用 ip -6）
+            await asyncio.sleep(3)
+            run_cmd(["incus", "exec", incus_name, "--", "ip", "-6", "addr", "add", f"{v6}/64", "dev", "eth0", "nodad"], timeout=10)
+            # 主機路由: 走 incusbr0（需用 ip -6）
+            run_cmd(["ip", "-6", "route", "add", f"{v6}/128", "dev", "incusbr0"], timeout=10)
+            # ip6tables ACCEPT
+            run_cmd(["ip6tables", "-I", "FORWARD", "-d", v6, "-j", "ACCEPT"], timeout=10)
+            run_cmd(["ip6tables", "-I", "FORWARD", "-s", v6, "-j", "ACCEPT"], timeout=10)
+            run_cmd(["ip", "-6", "neigh", "del", v6, "dev", "incusbr0"], timeout=5)
+            print(f"[ipv6] {v6} -> {incus_name} done")
+        else:
+            print(f"[ipv6] WARN: could not get PID for {incus_name}, IPv6 may not work")
     
     # 寫入資料庫
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute("""
             INSERT INTO instances (user_id, name, incus_name, status, cpu, ram_mb, disk_gb, ipv4, ipv6, quota_gb, password_hash)
             VALUES (?, ?, ?, 'running', ?, ?, ?, ?, ?, ?, ?)
-        """, (user["id"], name, incus_name, cpu, ram_mb, disk_gb, v4, v6, QUOTA_GB, password))
+        """, (user["id"], name, incus_name, cpu, ram_mb, disk_gb, "", v6, QUOTA_GB, password))
         inst_id = cursor.lastrowid
         await db.commit()
     
     return JSONResponse({
         "id": inst_id, "name": name, "incus_name": incus_name,
-        "ipv4": v4, "ipv6": v6, "password": password,
+        "ipv4": "", "ipv6": v6, "password": password,
         "cpu": cpu, "ram_mb": ram_mb, "disk_gb": disk_gb
     })
 
@@ -548,6 +563,24 @@ async def api_instance_action(inst_id: int, request: Request, user=Depends(get_c
     if action == "start":
         run_cmd(["incus", "start", incus_name], timeout=30)
         new_status = "running"
+        # 容器重啟後 IPv6 副地址會消失 -> 重新 nsenter + route + ip6tables
+        out3, _, _ = run_cmd(["incus", "info", incus_name], timeout=10)
+        pid = ""
+        for line in out3.split("\n"):
+            if "PID:" in line:
+                pid = line.split(":", 1)[1].strip()
+                break
+        if pid:
+            async with aiosqlite.connect(DB_PATH) as db:
+                cur = await db.execute("SELECT ipv6 FROM instances WHERE id=?", (inst_id,))
+                row = await cur.fetchone()
+            if row and row[0]:
+                v6 = row[0]
+                await asyncio.sleep(3)
+                run_cmd(["incus", "exec", incus_name, "--", "ip", "-6", "addr", "add", f"{v6}/64", "dev", "eth0", "nodad"], timeout=10)
+                run_cmd(["ip", "-6", "route", "add", f"{v6}/128", "dev", "incusbr0"], timeout=10)
+                run_cmd(["ip6tables", "-I", "FORWARD", "-d", v6, "-j", "ACCEPT"], timeout=10)
+                run_cmd(["ip6tables", "-I", "FORWARD", "-s", v6, "-j", "ACCEPT"], timeout=10)
     elif action == "stop":
         run_cmd(["incus", "stop", incus_name, "--force"], timeout=30)
         new_status = "stopped"
