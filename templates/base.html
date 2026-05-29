@@ -23,7 +23,7 @@
 </script>
 </head>
 <body>
-<nav class="nav">
+{% block nav %}<nav class="nav">
   <div class="nav-inner">
     <a href="/" class="nav-brand">
       <span class="brand-icon">◈</span>
@@ -45,9 +45,10 @@
       </button>
     </div>
   </div>
-</nav>
-<main class="main">
+</nav>{% endblock %}
+{% block main %}<main class="main">
 {% block content %}{% endblock %}
+</main>{% endblock %}
 </main>
 <script>
 function toggleTheme(){
