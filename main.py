@@ -416,6 +416,27 @@ async def instance_detail(request: Request, inst_id: int, user=Depends(get_curre
 
 # ── API 路由 ──
 
+@app.get("/api/user/profile")
+async def api_user_profile(user=Depends(get_current_user)):
+    if not user:
+        return {"error": "未登入"}
+    return {"id": user["id"], "email": user["email"], "is_admin": user["is_admin"], "credits": user["credits"]}
+
+
+@app.get("/api/instances")
+async def api_instances(user=Depends(get_current_user)):
+    if not user:
+        return {"error": "未登入"}
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute(
+            "SELECT id, name, status, cpu, ram_mb, disk_gb, ipv4, ipv6, quota_gb, created_at FROM instances WHERE user_id=? ORDER BY created_at DESC",
+            (user["id"],))
+        rows = await cursor.fetchall()
+    return [{"id": r[0], "name": r[1], "status": r[2], "cpu": r[3], "ram_mb": r[4],
+             "disk_gb": r[5], "ipv4": r[6] or "—", "ipv6": r[7] or "—",
+             "quota_gb": r[8], "created_at": r[9]} for r in rows]
+
+
 @app.post("/api/instances/create")
 async def api_create_instance(request: Request, user=Depends(get_current_user)):
     if not user:

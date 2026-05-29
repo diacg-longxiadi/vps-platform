@@ -1,99 +1,207 @@
-{% extends "base.html" %}
-{% block title %}主控台 - VPS 平台{% endblock %}
-{% block content %}
-<div class="dashboard-header">
-  <h1>我的主機</h1>
-  <button class="btn btn-primary" onclick="showCreateModal()">+ 新增主機</button>
-</div>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>帝云 - 主控台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #0f0f0f; color: #e0e0e0; }
+    .sidebar-item.active { background-color: #222; border-left: 3px solid #4299e1; }
+    .card-box { background-color: #18181b; border: 1px solid #27272a; }
+    .card-hover:hover { border-color: #3f3f46; }
+  </style>
+</head>
+<body class="flex min-h-screen">
 
-{% if instances %}
-<div class="instance-grid">
-{% for inst in instances %}
-  <a href="/instance/{{ inst.id }}" style="text-decoration:none;color:inherit">
-  <div class="instance-card">
-    <div class="header">
-      <span class="name">{{ inst.name }}</span>
-      <span class="status-badge {{ inst.status }}">{{ inst.status == 'running' and '● 運行中' or '● 已停止' }}</span>
-    </div>
-    <div class="row"><span class="l">IPv4</span><span class="v">{{ inst.ipv4 }}</span></div>
-    <div class="row"><span class="l">IPv6</span><span class="v" style="font-size:.7rem">{{ inst.ipv6 }}</span></div>
-    <div class="sep"></div>
-    <div class="row"><span class="l">CPU</span><span class="v">{{ inst.cpu }} 核</span></div>
-    <div class="row"><span class="l">記憶體</span><span class="v">{{ inst.ram_mb }} MB</span></div>
-    <div class="row"><span class="l">儲存</span><span class="v">{{ inst.disk_gb }} GB</span></div>
-    <div class="row"><span class="l">流量配額</span><span class="v">{{ inst.quota_gb }} GB/月</span></div>
-  </div>
-  </a>
-{% endfor %}
-</div>
-{% else %}
-<div class="empty-state">
-  <div class="icon">🖥</div>
-  <h3>尚無主機</h3>
-  <p>點擊下方按鈕建立你的第一台 VPS</p>
-  <button class="btn btn-primary" onclick="showCreateModal()">+ 新增主機</button>
-</div>
-{% endif %}
-
-<!-- Create Modal -->
-<div class="modal-overlay" id="createModal">
-  <div class="modal">
-    <span class="close" onclick="hideCreateModal()">&times;</span>
-    <h2>新增 VPS 主機</h2>
-    <form id="createForm" onsubmit="return createInstance(event)">
-      <div class="form-group">
-        <label>主機名稱</label>
-        <input type="text" name="name" required pattern="[a-z0-9][a-z0-9-]{1,31}" placeholder="my-server">
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>CPU (核心)</label>
-          <input type="number" name="cpu" value="0.2" step="0.1" min="0.1">
+  <!-- 左側選單 -->
+  <aside class="w-64 bg-[#121212] border-r border-gray-800 flex-shrink-0 hidden md:block">
+    <div class="p-4 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center">
+          <i class="fa-solid fa-cubes text-xl text-gray-300"></i>
         </div>
-        <div class="form-group">
-          <label>記憶體 (MB)</label>
-          <input type="number" name="ram_mb" value="256" step="64" min="128">
+        <span class="text-lg font-medium">帝云</span>
+      </div>
+    </div>
+    <nav class="p-3">
+      <div class="mb-4 text-xs text-gray-500 uppercase tracking-wider">常用</div>
+      <a href="/dashboard" class="sidebar-item active flex items-center gap-3 px-3 py-2 rounded mb-1">
+        <i class="fa-solid fa-house w-5"></i><span>總覽</span>
+      </a>
+      <a href="/instances" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800">
+        <i class="fa-solid fa-server w-5"></i><span>實例</span>
+      </a>
+      <a href="/wallet" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800">
+        <i class="fa-solid fa-wallet w-5"></i><span>錢包</span>
+      </a>
+      <a href="/transfer" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800">
+        <i class="fa-solid fa-right-left w-5"></i><span>轉移</span>
+      </a>
+      <div class="mb-4 mt-6 text-xs text-gray-500 uppercase tracking-wider">擴充（待開發）</div>
+      <div class="opacity-40 pointer-events-none">
+        <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1"><i class="fa-solid fa-terminal w-5"></i><span>終端機</span></a>
+        <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1"><i class="fa-solid fa-code w-5"></i><span>腳本</span></a>
+        <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1"><i class="fa-solid fa-gamepad w-5"></i><span>娛樂</span></a>
+        <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1"><i class="fa-solid fa-key w-5"></i><span>邀請</span></a>
+      </div>
+      <div class="mb-4 mt-6 text-xs text-gray-500 uppercase tracking-wider">系統</div>
+      <div class="opacity-40 pointer-events-none">
+        <a href="#" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1"><i class="fa-solid fa-cog w-5"></i><span>設定</span></a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- 主內容區 -->
+  <main class="flex-1 p-6 overflow-auto">
+    <div id="greeting" class="mb-8">
+      <h1 class="text-3xl font-semibold">載入中...</h1>
+      <p class="text-gray-400 mt-1">帝云主控台 — 高效雲端，觸手可及。</p>
+      <a href="/instances/create" class="mt-4 inline-block bg-white text-black px-6 py-3 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-200 transition">
+        <i class="fa-solid fa-plus"></i> 新增實例
+      </a>
+    </div>
+
+    <!-- 統計卡片區 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="card-box card-hover p-6 rounded-xl">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg bg-blue-900/40 flex items-center justify-center text-blue-400">
+            <i class="fa-solid fa-server text-xl"></i>
+          </div>
+          <div>
+            <div id="total-instances" class="text-3xl font-bold">-</div>
+            <div class="text-gray-400">實例總數</div>
+          </div>
         </div>
       </div>
-      <div class="form-group">
-        <label>儲存 (GB)</label>
-        <input type="number" name="disk_gb" value="5" min="1">
+      <div class="card-box card-hover p-6 rounded-xl">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg bg-green-900/40 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-circle-play text-xl"></i>
+          </div>
+          <div>
+            <div id="running-count" class="text-3xl font-bold">-</div>
+            <div class="text-gray-400">運行中</div>
+          </div>
+        </div>
       </div>
-      <button class="btn btn-primary" type="submit" id="createBtn">建立</button>
-    </form>
-    <div class="result" id="createResult">
-      <strong>✅ 建立成功！</strong>
-      <pre id="resultInfo"></pre>
-      <button class="btn btn-outline btn-sm" onclick="hideCreateModal()" style="margin-top:8px">關閉</button>
+      <div class="card-box card-hover p-6 rounded-xl">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg bg-emerald-900/40 flex items-center justify-center text-emerald-400">
+            <i class="fa-solid fa-coins text-xl"></i>
+          </div>
+          <div>
+            <div id="balance" class="text-3xl font-bold text-emerald-400">-</div>
+            <div class="text-gray-400">餘額</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-box card-hover p-6 rounded-xl">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-lg bg-purple-900/40 flex items-center justify-center text-purple-400">
+            <i class="fa-solid fa-key text-xl"></i>
+          </div>
+          <div>
+            <div class="text-3xl font-bold">0/0</div>
+            <div class="text-gray-400">邀請碼</div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<script>
-function showCreateModal(){
-  document.getElementById('createModal').classList.add('active');
-  document.getElementById('createResult').style.display='none';
-  document.getElementById('createForm').style.display='block';
-}
-function hideCreateModal(){
-  document.getElementById('createModal').classList.remove('active');
-}
-async function createInstance(e){
-  e.preventDefault();
-  const btn=document.getElementById('createBtn');
-  btn.disabled=true;btn.textContent='建立中...';
-  const form=new FormData(document.getElementById('createForm'));
-  try{
-    const r=await fetch('/api/instances/create',{method:'POST',body:form});
-    const d=await r.json();
-    if(d.error){alert('錯誤: '+d.error);return}
-    document.getElementById('createForm').style.display='none';
-    const info=document.getElementById('resultInfo');
-    info.textContent='名稱: '+d.name+'\nIP: '+d.ipv4+'\nIPv6: '+d.ipv6+'\n密碼: '+d.password+'\nCPU: '+d.cpu+' 核\nRAM: '+d.ram_mb+' MB\nDisk: '+d.disk_gb+' GB';
-    document.getElementById('createResult').style.display='block';
-    setTimeout(()=>location.reload(),3000);
-  }catch(e){alert('建立失敗: '+e.message)}
-  finally{btn.disabled=false;btn.textContent='建立'}
-}
-</script>
-{% endblock %}
+    <!-- 公告 -->
+    <div class="card-box p-6 rounded-xl mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-medium">最新公告</h2>
+        <button class="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-500 transition">查看全部</button>
+      </div>
+      <div class="pl-4 border-l-2 border-gray-700">
+        <div class="font-medium">帝云平台正式上線！</div>
+        <div class="text-sm text-gray-500 mt-1">公告</div>
+      </div>
+    </div>
+
+    <!-- 我的實例 -->
+    <div class="mb-6 flex justify-between items-center">
+      <h2 class="text-xl font-medium">我的實例</h2>
+      <a href="/instances" class="text-blue-400 hover:text-blue-300">查看全部 →</a>
+    </div>
+    <div id="instance-list" class="card-box p-4 rounded-xl">
+      <div class="text-center text-gray-500 py-8">載入中...</div>
+    </div>
+  </main>
+
+  <script>
+    async function loadDashboard() {
+      try {
+        // 1. 載入使用者資料
+        const [userRes, instRes] = await Promise.all([
+          fetch('/api/user/profile', { credentials: 'include' }),
+          fetch('/api/instances', { credentials: 'include' })
+        ]);
+
+        const user = await userRes.json();
+        const instances = await instRes.json();
+
+        // 2. 問候語
+        const hours = new Date().getHours();
+        let greeting = '午安';
+        if (hours < 6) greeting = '凌晨好';
+        else if (hours < 12) greeting = '早安';
+
+        document.getElementById('greeting').querySelector('h1').textContent =
+          greeting + '，' + (user.email ? user.email.split('@')[0] : '訪客');
+
+        // 3. 統計
+        document.getElementById('total-instances').textContent = instances.length;
+        document.getElementById('running-count').textContent =
+          instances.filter(i => i.status === 'running').length;
+        document.getElementById('balance').textContent =
+          user.credits != null ? user.credits : '0';
+
+        // 4. 實例列表
+        const container = document.getElementById('instance-list');
+        if (instances.length === 0) {
+          container.innerHTML = '<div class="text-center text-gray-500 py-8">' +
+            '<i class="fa-solid fa-server text-4xl mb-4 block"></i>' +
+            '<p class="mb-4">還沒有實例</p>' +
+            '<a href="/instances/create" class="bg-white text-black px-6 py-3 rounded-lg font-medium inline-block hover:bg-gray-200 transition">立即創建</a>' +
+            '</div>';
+          return;
+        }
+
+        container.innerHTML = instances.map(inst => {
+          const statusColor = inst.status === 'running' ? 'text-green-400' : 'text-gray-500';
+          const statusText = inst.status === 'running' ? '運行中' : '已停止';
+          return '<a href="/instance/' + inst.id + '" class="block">' +
+            '<div class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800 transition">' +
+              '<div class="w-12 h-12 rounded-lg bg-yellow-900/40 flex items-center justify-center text-yellow-400">' +
+                '<span class="font-bold">LXC</span>' +
+              '</div>' +
+              '<div class="flex-1">' +
+                '<div class="flex items-center gap-2">' +
+                  '<span class="text-xl font-semibold">' + (inst.name || '#' + inst.id) + '</span>' +
+                  '<span class="' + statusColor + ' text-sm">● ' + statusText + '</span>' +
+                  '<span class="bg-blue-900/40 text-blue-400 px-2 py-1 rounded text-xs">LXC</span>' +
+                '</div>' +
+                '<div class="text-sm text-gray-400 mt-1">' +
+                  (inst.cpu || '0.2') + ' CPU &nbsp;&nbsp; ' + (inst.ram_mb || '256') + ' MB &nbsp;&nbsp; ' + (inst.disk_gb || '5') + ' GB' +
+                '</div>' +
+              '</div>' +
+              '<div class="text-gray-500"><i class="fa-solid fa-chevron-right"></i></div>' +
+            '</div>' +
+          '</a>';
+        }).join('');
+      } catch (e) {
+        document.getElementById('greeting').querySelector('h1').textContent = '載入失敗';
+        document.getElementById('instance-list').innerHTML =
+          '<div class="text-center text-red-400 py-8">資料載入失敗，請重新整理</div>';
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
