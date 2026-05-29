@@ -1,4 +1,4 @@
-# Incudal — 基於 Incus 的 NAT VPS 平台
+# 帝云 — 基於 Incus 的 NAT VPS 平台
 
 輕量級 VPS 管理平台，基於 Incus 容器技術，提供 NAT IPv4 + 獨立 IPv6 VPS 實例的自助部署與管理。
 
