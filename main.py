@@ -119,11 +119,6 @@ def next_ipv6():
                     if addr.get("family") == "inet6" and addr.get("scope") == "global":
                         used.add(addr.get("address", "").split("/")[0])
     except: pass
-    
-    # 試著加上 Docker 容器的 IPv6
-    out2, _, _ = run_cmd(["docker", "inspect"] + [x["name"] for x in json.loads(
-        subprocess.run(["docker", "ps", "-a", "--format={{.Names}}"], capture_output=True, text=True).stdout.strip().split("\n") if False else []
-    )] + ["--format={{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}"])
 
     for i in range(5, 255):
         v6 = f"{HE_V6_PREFIX}::{i:x}"
@@ -202,14 +197,13 @@ async def get_current_user(request: Request):
 
 # ── Incus 管理 ──
 
-async def create_incus_instance(name, image="ubuntu/22.04", cpu=0.2, ram_mb=256, disk_gb=5, ipv6=""):
+async def create_incus_instance(name, image="images:ubuntu/25.10", cpu=0.2, ram_mb=256, disk_gb=5, ipv6=""):
     """透過 incus CLI 建立容器"""
     # 建立容器
     stdout, stderr, rc = run_cmd([
         "incus", "init", image, name,
-        "--config", f"limits.cpu={cpu}",
+        "--config", f"limits.cpu.allowance={int(cpu*100)}%",
         "--config", f"limits.memory={ram_mb}MiB",
-        "--config", f"limits.disk={disk_gb}GiB",
         "--config", "security.privileged=true",
         "--config", "user.vendor-data=",  # 空 cloud-init
     ], timeout=120)
@@ -218,9 +212,6 @@ async def create_incus_instance(name, image="ubuntu/22.04", cpu=0.2, ram_mb=256,
 
     # 修改網路設定 - 加入 IPv6
     if ipv6:
-        # 先取得容器 eth0 的現有設定
-        dev_out, _, _ = run_cmd(["incus", "config", "device", "get", name, "eth0"])
-        # 加入 IPv6 地址
         run_cmd(["incus", "config", "device", "set", name, "eth0", "ipv6.address", ipv6])
 
     # 啟動
@@ -445,7 +436,7 @@ async def api_create_instance(request: Request, user=Depends(get_current_user)):
     
     # 建立 incus 容器
     success, result = await create_incus_instance(
-        incus_name, image="ubuntu/22.04",
+        incus_name, image="images:ubuntu/25.10",
         cpu=cpu, ram_mb=ram_mb, disk_gb=disk_gb, ipv6=ipv6
     )
     
