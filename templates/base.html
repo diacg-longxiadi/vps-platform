@@ -3,22 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{% block title %}VPS 平台{% endblock %}</title>
+<meta name="theme-color" content="#0a0a0a">
+<title>{% block title %}Incudal - 基於 Incus 的低價 NAT VPS 平台{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <nav class="nav">
   <div class="nav-inner">
-    <a href="/" class="nav-brand">VPS 平台</a>
+    <a href="/" class="nav-brand">
+      <span class="brand-icon">◈</span>
+      <span class="brand-text">Incudal</span>
+    </a>
     <div class="nav-links">
       {% if user %}
         <span class="nav-user">{{ user.email }}</span>
         {% if user.is_admin %}<a href="/admin" class="nav-link">管理</a>{% endif %}
         <a href="/dashboard" class="nav-link">主控台</a>
-        <a href="/logout" class="nav-link">登出</a>
+        <a href="/logout" class="nav-link nav-link-muted">登出</a>
       {% else %}
         <a href="/login" class="nav-link">登入</a>
-        <a href="/register" class="nav-link btn-primary">註冊</a>
+        <a href="/register" class="btn btn-sm btn-primary">註冊</a>
       {% endif %}
     </div>
   </div>

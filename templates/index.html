@@ -1,34 +1,97 @@
 {% extends "base.html" %}
-{% block title %}VPS 平台 - 雲端主機{% endblock %}
 {% block content %}
-<div class="hero">
-  <h1>高效能雲端 VPS</h1>
-  <p>基於 Incus 容器技術，獨立 IPv6，彈性配置</p>
+<section class="hero">
+  <div class="hero-badge">基於 Incus 容器技術</div>
+  <h1 class="hero-title">低價 NAT VPS<br>即刻部署</h1>
+  <p class="hero-desc">獨立 IPv6、全端口開放、彈性配置，<br class="hide-desktop">從 0.2 核心 / 256MB 記憶體起</p>
   <div class="hero-actions">
-    <a href="/register" class="btn btn-lg">立即開始</a>
+    <a href="/register" class="btn btn-primary btn-lg">立即開始</a>
     <a href="/login" class="btn btn-outline btn-lg">現有用戶登入</a>
   </div>
-</div>
-<div class="features">
-  <div class="feature-card">
-    <div class="feature-icon">⚡</div>
-    <h3>快速部署</h3>
-    <p>一鍵建立容器，秒級啟動</p>
+</section>
+
+<section class="features-section">
+  <div class="features-label">為什麼選擇 Incudal</div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>秒級部署</h3>
+      <p>一鍵建立 Incus 容器，支援 Ubuntu / Debian 等多種鏡像</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <h3>獨立 IPv6</h3>
+      <p>每個實例配備獨立 IPv6 地址，全端口開放，無 NAT 限制</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>即時監控</h3>
+      <p>CPU、記憶體、磁碟、網路流量即時可視化面板</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔧</div>
+      <h3>彈性配置</h3>
+      <p>自由調整 CPU 核心、RAM 大小、儲存空間，按需付費</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>安全隔離</h3>
+      <p>基於 Incus 容器隔離技術，硬體級資源限制，互不干擾</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <h3>流量配額</h3>
+      <p>每月 500GB 雙向流量配額，自動重置，用量一目了然</p>
+    </div>
   </div>
-  <div class="feature-card">
-    <div class="feature-icon">🔒</div>
-    <h3>獨立 IPv6</h3>
-    <p>每台主機獨立 IPv6 地址，全端口開放</p>
+</section>
+
+<section class="pricing-section">
+  <div class="pricing-label">方案一覽</div>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-name">入門方案</div>
+      <div class="pricing-price">免費</div>
+      <ul class="pricing-features">
+        <li>0.2 CPU 核心</li>
+        <li>256 MB 記憶體</li>
+        <li>5 GB 儲存空間</li>
+        <li>獨立 IPv6</li>
+        <li>500 GB / 月流量</li>
+      </ul>
+      <a href="/register" class="btn btn-primary" style="width:100%;text-align:center">開始使用</a>
+    </div>
+    <div class="pricing-card pricing-featured">
+      <div class="pricing-badge">熱門</div>
+      <div class="pricing-name">標準方案</div>
+      <div class="pricing-price">$5<span class="pricing-period">/月</span></div>
+      <ul class="pricing-features">
+        <li>1 CPU 核心</li>
+        <li>1 GB 記憶體</li>
+        <li>10 GB 儲存空間</li>
+        <li>獨立 IPv6</li>
+        <li>1 TB / 月流量</li>
+      </ul>
+      <a href="/register" class="btn btn-primary" style="width:100%;text-align:center">開始使用</a>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-name">專業方案</div>
+      <div class="pricing-price">$15<span class="pricing-period">/月</span></div>
+      <ul class="pricing-features">
+        <li>2 CPU 核心</li>
+        <li>2 GB 記憶體</li>
+        <li>20 GB 儲存空間</li>
+        <li>獨立 IPv6</li>
+        <li>2 TB / 月流量</li>
+      </ul>
+      <a href="/register" class="btn btn-primary" style="width:100%;text-align:center">開始使用</a>
+    </div>
   </div>
-  <div class="feature-card">
-    <div class="feature-icon">📊</div>
-    <h3>即時監控</h3>
-    <p>CPU、記憶體、流量即時顯示</p>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <p>© 2025 Incudal · 基於 Incus 的 NAT VPS 平台</p>
   </div>
-  <div class="feature-card">
-    <div class="feature-icon">🔄</div>
-    <h3>彈性配置</h3>
-    <p>自訂 CPU、RAM、儲存空間</p>
-  </div>
-</div>
+</footer>
 {% endblock %}
