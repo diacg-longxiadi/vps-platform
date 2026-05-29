@@ -1,32 +1,78 @@
-{% extends "base.html" %}
-{% block title %}登入 - 帝云{% endblock %}
-{% block nav %}{% endblock %}
-{% block main %}
-<div class="min-h-screen flex items-center justify-center p-4 auth-bg">
-  <div class="w-full max-w-sm">
-    <div class="text-center mb-8">
-      <div class="auth-logo w-16 h-16 mx-auto mb-2 rounded-xl flex items-center justify-center">◈</div>
-      <h2 class="text-lg font-semibold mb-1">帝云</h2>
-      <p class="text-sm text-secondary">登入您的帳號</p>
-    </div>
-    <div class="card p-6">
-      {% if error %}<div class="msg-error mb-4">{{ error }}</div>{% endif %}
-      {% if success %}<div class="msg-success mb-4">{{ success }}</div>{% endif %}
-      <form class="space-y-4" method="post" action="/login">
-        <div>
-          <label class="block text-sm mb-1.5 text-secondary">Email</label>
-          <input class="input" type="email" name="email" required placeholder="you@example.com" autocomplete="email">
-        </div>
-        <div>
-          <label class="block text-sm mb-1.5 text-secondary">密碼</label>
-          <input class="input" type="password" name="password" required placeholder="請輸入密碼" autocomplete="current-password">
-        </div>
-        <button class="btn-primary w-full" type="submit">登入</button>
-      </form>
-    </div>
-    <div class="mt-6 text-center text-sm">
-      <p class="text-tertiary">還沒有帳號？<a href="/register" class="text-link">註冊</a></p>
-    </div>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>laducnl 懷舊服 - 登入</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0f0f0f; color: #e0e0e0; }
+    .input-box { background: #1a1a1a; border: 1px solid #333; }
+    .input-box:focus { border-color: #555; outline: none; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center px-4 py-10">
+  <div class="mb-10 text-center">
+    <h1 class="text-3xl font-medium text-gray-100">laducnl 懷舊服</h1>
+    <p class="mt-2 text-xl text-gray-400">登入</p>
   </div>
-</div>
-{% endblock %}
+
+  <form id="loginForm" class="w-full max-w-lg border border-gray-700 rounded-xl p-8">
+    <!-- Email -->
+    <div class="mb-6">
+      <label class="block mb-2 text-gray-300">電子郵件</label>
+      <input
+        type="email"
+        name="email"
+        required
+        placeholder="you@example.com"
+        class="input-box w-full px-4 py-3 rounded-lg text-gray-200"
+      />
+    </div>
+
+    <!-- 密碼 -->
+    <div class="mb-6">
+      <label class="block mb-2 text-gray-300">密碼</label>
+      <input
+        type="password"
+        name="password"
+        required
+        placeholder="請輸入密碼"
+        class="input-box w-full px-4 py-3 rounded-lg text-gray-200"
+      />
+    </div>
+
+    <!-- 登入按鈕 -->
+    <button
+      type="submit"
+      class="w-full bg-gray-800 hover:bg-gray-700 py-4 rounded-lg text-gray-400 font-medium"
+    >
+      登入
+    </button>
+
+    <p class="mt-6 text-center text-gray-500">
+      還沒有帳號？<a href="/register" class="text-blue-400">註冊</a>
+    </p>
+  </form>
+
+  <script src="/static/auth.js"></script>
+  <script>
+    const form = document.getElementById("loginForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const data = Object.fromEntries(fd);
+
+      const res = await postForm("/login", data);
+      if (res.redirected) {
+        toast("登入成功", true);
+        location.href = res.url;
+      } else {
+        const text = await res.text();
+        toast("登入失敗：帳號或密碼錯誤");
+      }
+    });
+  </script>
+</body>
+</html>
