@@ -10,6 +10,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from passlib.hash import bcrypt
 import aiosqlite
+import smtplib, json
+from email.mime.text import MIMEText
 
 # ── 設定 ──
 DB_PATH = "/opt/vps-platform/data/vps.db"
@@ -36,6 +38,7 @@ async def init_db():
                 password_hash TEXT NOT NULL,
                 is_admin INTEGER DEFAULT 0,
                 credits REAL DEFAULT 0,
+                is_verified INTEGER DEFAULT 0,
                 created_at TEXT DEFAULT (datetime('now'))
             )
         """)
@@ -53,6 +56,15 @@ async def init_db():
                 ipv6 TEXT,
                 quota_gb INTEGER DEFAULT 500,
                 password_hash TEXT,
+                created_at TEXT DEFAULT (datetime('now')),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS verify_tokens (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                token TEXT UNIQUE NOT NULL,
                 created_at TEXT DEFAULT (datetime('now')),
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
@@ -124,6 +136,52 @@ def generate_password():
     """隨機密碼"""
     return secrets.token_hex(12)
 
+
+# ── Email 驗證 ──
+
+def load_smtp_config():
+    """載入 SMTP 設定"""
+    try:
+        with open("/root/smtp_config.json") as f:
+            return json.load(f)
+    except:
+        return {}
+
+def send_verify_email(to_email, token):
+    """發送驗證郵件"""
+    cfg = load_smtp_config()
+    if not cfg.get("require_verification", True):
+        return True
+
+    verify_url = "https://docker-vps.xn--acg-4i2f.xyz/verify/" + token
+    subject = "VPS Platform - 請驗證您的 Email"
+    body = f"""您好，\n\n感謝您註冊 VPS Platform！\n\n請點擊以下連結驗證您的 Email：\n{verify_url}\n\n連結有效 24 小時。\n\nVPS Platform 團隊"""
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"] = subject
+    msg["From"] = cfg.get("from_email", "noreply@vps.local")
+    msg["To"] = to_email
+
+    try:
+        with smtplib.SMTP(cfg.get("host", "smtp.gmail.com"), cfg.get("port", 587), timeout=15) as s:
+            s.ehlo()
+            s.starttls()
+            s.ehlo()
+            s.login(cfg["user"], cfg["password"])
+            s.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"[email] send failed: {e}")
+        return False
+
+async def is_user_verified(user_id) -> bool:
+    """檢查使用者是否已驗證"""
+    cfg = load_smtp_config()
+    if not cfg.get("require_verification", True):
+        return True
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("SELECT is_verified FROM users WHERE id=?", (user_id,))
+        row = await cursor.fetchone()
+        return bool(row and row[0] == 1)
 
 async def get_current_user(request: Request):
     """從 session cookie 取得目前使用者"""
@@ -237,9 +295,37 @@ async def register(request: Request, email: str = Form(...), password: str = For
         })
 
 
+@app.get("/verify/{token}")
+async def verify_email(request: Request, token: str):
+    """驗證 Email"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute(
+            "SELECT user_id FROM verify_tokens WHERE token=? AND created_at > datetime('now', '-1 day')",
+            (token,))
+        row = await cursor.fetchone()
+        if row:
+            user_id = row[0]
+            await db.execute("UPDATE users SET is_verified=1 WHERE id=?", (user_id,))
+            await db.execute("DELETE FROM verify_tokens WHERE token=?", (token,))
+            await db.commit()
+            return RedirectResponse(url="/login?verified=1")
+        cursor2 = await db.execute(
+            "SELECT user_id FROM verify_tokens WHERE token=?", (token,))
+        row2 = await cursor2.fetchone()
+        if row2:
+            return templates.TemplateResponse("register.html", {
+                "request": request, "error": "\u9a57\u8b49\u9023\u7d50\u5df2\u904e\u671f(24 \u5c0f\u6642)\uff0c\u8acb\u91cd\u65b0\u8a3b\u518a\u3002"
+            })
+        return templates.TemplateResponse("register.html", {
+            "request": request, "error": "\u7121\u6548\u7684\u9a57\u8b49\u9023\u7d50\u3002"
+        })
+
 @app.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+async def login_page(request: Request, verified: str = ""):
+    extra = {}
+    if verified == "1":
+        extra["success"] = "Email \u9a57\u8b49\u6210\u529f\uff01\u8acb\u767b\u5165"
+    return templates.TemplateResponse("login.html", {"request": request, **extra})
 
 
 @app.post("/login")
@@ -248,6 +334,14 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
         cursor = await db.execute("SELECT id, password_hash FROM users WHERE email=?", (email,))
         row = await cursor.fetchone()
         if row and bcrypt.verify(password, row[1]):
+            cfg = load_smtp_config()
+            if cfg.get("require_verification", True):
+                cur2 = await db.execute("SELECT is_verified FROM users WHERE id=?", (row[0],))
+                vrow = await cur2.fetchone()
+                if not vrow or vrow[0] != 1:
+                    return templates.TemplateResponse("login.html", {
+                        "request": request, "error": "\u8acb\u5148\u9a57\u8b49\u60a8\u7684 Email \u5f8c\u518d\u767b\u5165"
+                    })
             token = secrets.token_hex(32)
             await db.execute("INSERT INTO sessions (token, user_id) VALUES (?, ?)",
                            (token, row[0]))
