@@ -414,6 +414,35 @@ async def instance_detail(request: Request, inst_id: int, user=Depends(get_curre
     })
 
 
+
+@app.get("/instances/create", response_class=HTMLResponse)
+async def create_instance_page(request: Request, user=Depends(get_current_user)):
+    if not user:
+        return RedirectResponse(url="/login")
+    return templates.TemplateResponse("create.html", {"request": request, "user": user})
+
+
+@app.get("/instances", response_class=HTMLResponse)
+async def instances_page(request: Request, user=Depends(get_current_user)):
+    if not user:
+        return RedirectResponse(url="/login")
+    return templates.TemplateResponse("instances_list.html", {"request": request, "user": user})
+
+
+@app.get("/wallet", response_class=HTMLResponse)
+async def wallet_page(request: Request, user=Depends(get_current_user)):
+    if not user:
+        return RedirectResponse(url="/login")
+    return templates.TemplateResponse("wallet.html", {"request": request, "user": user})
+
+
+@app.get("/transfer", response_class=HTMLResponse)
+async def transfer_page(request: Request, user=Depends(get_current_user)):
+    if not user:
+        return RedirectResponse(url="/login")
+    return templates.TemplateResponse("transfer.html", {"request": request, "user": user})
+
+
 # ── API 路由 ──
 
 @app.get("/api/user/profile")

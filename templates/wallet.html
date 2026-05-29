@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>帝云 - 錢包</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>body{background-color:#0f0f0f;color:#e0e0e0}.card-box{background-color:#18181b;border:1px solid #27272a}</style>
+</head>
+<body class="flex min-h-screen">
+  <aside class="w-64 bg-[#121212] border-r border-gray-800 flex-shrink-0 hidden md:block">
+    <div class="p-4 border-b border-gray-800"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center"><i class="fa-solid fa-cubes text-xl text-gray-300"></i></div><span class="text-lg font-medium">帝云</span></div></div>
+    <nav class="p-3">
+      <div class="mb-4 text-xs text-gray-500 uppercase tracking-wider">常用</div>
+      <a href="/dashboard" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-house w-5"></i><span>總覽</span></a>
+      <a href="/instances/create" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-plus w-5"></i><span>新增實例</span></a>
+      <a href="/instances" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-server w-5"></i><span>實例列表</span></a>
+      <a href="/wallet" class="sidebar-item active flex items-center gap-3 px-3 py-2 rounded mb-1" style="background-color:#222;border-left:3px solid #4299e1;"><i class="fa-solid fa-wallet w-5"></i><span>錢包</span></a>
+      <div class="mb-4 mt-6 text-xs text-gray-500 uppercase tracking-wider">系統</div>
+      <a href="/logout" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-right-from-bracket w-5"></i><span>登出</span></a>
+    </nav>
+  </aside>
+  <main class="flex-1 p-6 overflow-auto">
+    <div class="mb-8"><h1 class="text-3xl font-semibold">錢包</h1><p class="text-gray-400 mt-1">管理你的帳戶餘額與交易紀錄</p></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="card-box p-6 rounded-xl">
+        <div class="flex items-center gap-4"><div class="w-12 h-12 rounded-lg bg-emerald-900/40 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-coins text-xl"></i></div><div><div id="balance" class="text-3xl font-bold">載入中...</div><div class="text-gray-400">目前餘額</div></div></div>
+      </div>
+      <div class="card-box p-6 rounded-xl">
+        <div class="flex items-center gap-4"><div class="w-12 h-12 rounded-lg bg-blue-900/40 flex items-center justify-center text-blue-400"><i class="fa-solid fa-arrow-up text-xl"></i></div><div><a href="#" class="text-xl font-medium text-blue-400 hover:text-blue-300">儲值 →</a><div class="text-gray-400">為帳戶增加餘額</div></div></div>
+      </div>
+    </div>
+    <div class="card-box p-6 rounded-xl">
+      <h2 class="text-xl font-medium mb-4">交易紀錄</h2>
+      <p class="text-gray-500 text-center py-8">暫無交易紀錄</p>
+    </div>
+  </main>
+  <script>fetch('/api/user/profile',{credentials:'include'}).then(r=>r.json()).then(u=>{document.getElementById('balance').textContent=u.credits||'0'}).catch(()=>{document.getElementById('balance').textContent='—'})</script>
+</body>
+</html>

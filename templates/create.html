@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>帝云 - 新增實例</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #0f0f0f; color: #e0e0e0; }
+    .card-box { background-color: #18181b; border: 1px solid #27272a; }
+    input, select { background-color: #27272a; border: 1px solid #3f3f46; color: #e0e0e0; border-radius: 8px; padding: 10px 14px; width: 100%; outline: none; }
+    input:focus, select:focus { border-color: #4299e1; }
+    .btn-primary { background-color: white; color: black; padding: 10px 24px; border-radius: 8px; font-weight: 500; }
+    .btn-primary:hover { background-color: #e5e5e5; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .plan-card { background-color: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.15s; }
+    .plan-card:hover { border-color: #3f3f46; }
+    .plan-card.selected { border-color: #4299e1; background-color: #1e293b; }
+  </style>
+</head>
+<body class="flex min-h-screen">
+  <aside class="w-64 bg-[#121212] border-r border-gray-800 flex-shrink-0 hidden md:block">
+    <div class="p-4 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center">
+          <i class="fa-solid fa-cubes text-xl text-gray-300"></i>
+        </div>
+        <span class="text-lg font-medium">帝云</span>
+      </div>
+    </div>
+    <nav class="p-3">
+      <div class="mb-4 text-xs text-gray-500 uppercase tracking-wider">常用</div>
+      <a href="/dashboard" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-house w-5"></i><span>總覽</span></a>
+      <a href="/instances/create" class="sidebar-item active flex items-center gap-3 px-3 py-2 rounded mb-1" style="background-color:#222;border-left:3px solid #4299e1;"><i class="fa-solid fa-plus w-5"></i><span>新增實例</span></a>
+      <a href="/instances" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-server w-5"></i><span>實例列表</span></a>
+      <a href="/wallet" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-wallet w-5"></i><span>錢包</span></a>
+      <div class="mb-4 mt-6 text-xs text-gray-500 uppercase tracking-wider">系統</div>
+      <a href="/logout" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-right-from-bracket w-5"></i><span>登出</span></a>
+    </nav>
+  </aside>
+  <main class="flex-1 p-6 overflow-auto">
+    <div class="mb-8">
+      <h1 class="text-3xl font-semibold">新增實例</h1>
+      <p class="text-gray-400 mt-1">選擇方案並設定實例名稱</p>
+    </div>
+
+    <form id="createForm" class="max-w-2xl">
+      <!-- 方案選擇 -->
+      <div class="mb-6">
+        <h2 class="text-lg font-medium mb-4">選擇方案</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="planSelector">
+          <div class="plan-card selected" data-cpu="0.2" data-ram="256" data-disk="5" data-quota="500" onclick="selectPlan(this)">
+            <div class="text-lg font-semibold mb-1">入門</div>
+            <div class="text-2xl font-bold text-blue-400 mb-2">免費</div>
+            <ul class="text-sm text-gray-400 space-y-1">
+              <li>0.2 CPU 核心</li>
+              <li>256 MB 記憶體</li>
+              <li>5 GB 儲存</li>
+              <li>500 GB 流量/月</li>
+            </ul>
+          </div>
+          <div class="plan-card" data-cpu="1" data-ram="1024" data-disk="10" data-quota="1024" onclick="selectPlan(this)">
+            <div class="text-lg font-semibold mb-1">標準</div>
+            <div class="text-2xl font-bold text-emerald-400 mb-2">$5/月</div>
+            <ul class="text-sm text-gray-400 space-y-1">
+              <li>1 CPU 核心</li>
+              <li>1 GB 記憶體</li>
+              <li>10 GB 儲存</li>
+              <li>1 TB 流量/月</li>
+            </ul>
+          </div>
+          <div class="plan-card" data-cpu="2" data-ram="2048" data-disk="20" data-quota="2048" onclick="selectPlan(this)">
+            <div class="text-lg font-semibold mb-1">專業</div>
+            <div class="text-2xl font-bold text-purple-400 mb-2">$15/月</div>
+            <ul class="text-sm text-gray-400 space-y-1">
+              <li>2 CPU 核心</li>
+              <li>2 GB 記憶體</li>
+              <li>20 GB 儲存</li>
+              <li>2 TB 流量/月</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="text-lg font-medium mb-4">實例名稱</h2>
+        <input type="text" id="nameInput" placeholder="my-instance" class="max-w-sm" required>
+        <p class="text-sm text-gray-500 mt-1">小寫字母、數字、連字號，2-32 字元</p>
+      </div>
+
+      <button type="submit" class="btn-primary" id="submitBtn">建立實例</button>
+      <div id="status" class="mt-4 text-sm hidden"></div>
+    </form>
+  </main>
+
+  <script>
+    function selectPlan(el) {
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    document.getElementById('createForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const status = document.getElementById('status');
+      const name = document.getElementById('nameInput').value.trim();
+      const selected = document.querySelector('.plan-card.selected');
+
+      if (!name) { status.className = 'mt-4 text-sm text-red-400'; status.textContent = '請輸入名稱'; status.classList.remove('hidden'); return; }
+      if (!/^[a-z0-9][a-z0-9-]{1,31}$/.test(name)) {
+        status.className = 'mt-4 text-sm text-red-400'; status.textContent = '名稱限小寫字母數字連字號，2-32 字元'; status.classList.remove('hidden'); return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '建立中...';
+      status.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/instances/create', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            name: name,
+            cpu: selected.dataset.cpu,
+            ram_mb: selected.dataset.ram,
+            disk_gb: selected.dataset.disk
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          status.className = 'mt-4 text-sm text-green-400';
+          status.textContent = '✅ 建立成功！正在跳轉...';
+          status.classList.remove('hidden');
+          setTimeout(() => { window.location.href = '/instance/' + data.id; }, 1500);
+        } else {
+          status.className = 'mt-4 text-sm text-red-400';
+          status.textContent = '❌ ' + (data.error || '建立失敗');
+          status.classList.remove('hidden');
+        }
+      } catch (err) {
+        status.className = 'mt-4 text-sm text-red-400';
+        status.textContent = '❌ 網路錯誤';
+        status.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '建立實例';
+      }
+    });
+  </script>
+</body>
+</html>

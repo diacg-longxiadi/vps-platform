@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>帝云 - 實例列表</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #0f0f0f; color: #e0e0e0; }
+    .card-box { background-color: #18181b; border: 1px solid #27272a; }
+    .card-hover:hover { border-color: #3f3f46; }
+  </style>
+</head>
+<body class="flex min-h-screen">
+  <aside class="w-64 bg-[#121212] border-r border-gray-800 flex-shrink-0 hidden md:block">
+    <div class="p-4 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center"><i class="fa-solid fa-cubes text-xl text-gray-300"></i></div>
+        <span class="text-lg font-medium">帝云</span>
+      </div>
+    </div>
+    <nav class="p-3">
+      <div class="mb-4 text-xs text-gray-500 uppercase tracking-wider">常用</div>
+      <a href="/dashboard" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-house w-5"></i><span>總覽</span></a>
+      <a href="/instances/create" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-plus w-5"></i><span>新增實例</span></a>
+      <a href="/instances" class="sidebar-item active flex items-center gap-3 px-3 py-2 rounded mb-1" style="background-color:#222;border-left:3px solid #4299e1;"><i class="fa-solid fa-server w-5"></i><span>實例列表</span></a>
+      <a href="/wallet" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-wallet w-5"></i><span>錢包</span></a>
+      <div class="mb-4 mt-6 text-xs text-gray-500 uppercase tracking-wider">系統</div>
+      <a href="/logout" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-right-from-bracket w-5"></i><span>登出</span></a>
+    </nav>
+  </aside>
+  <main class="flex-1 p-6 overflow-auto">
+    <div class="mb-6 flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-semibold">實例列表</h1>
+        <p class="text-gray-400 mt-1">管理你的所有實例</p>
+      </div>
+      <a href="/instances/create" class="bg-white text-black px-5 py-3 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-200 transition"><i class="fa-solid fa-plus"></i> 新增</a>
+    </div>
+    <div id="instance-list" class="card-box p-4 rounded-xl">
+      <div class="text-center text-gray-500 py-8">載入中...</div>
+    </div>
+  </main>
+  <script>
+    async function loadInstances() {
+      try {
+        const res = await fetch('/api/instances', { credentials: 'include' });
+        const instances = await res.json();
+        const container = document.getElementById('instance-list');
+        if (!instances.length) {
+          container.innerHTML = '<div class="text-center text-gray-500 py-8"><i class="fa-solid fa-server text-4xl mb-4 block"></i><p class="mb-4">還沒有實例</p><a href="/instances/create" class="bg-white text-black px-6 py-3 rounded-lg font-medium inline-block hover:bg-gray-200 transition">立即創建</a></div>';
+          return;
+        }
+        container.innerHTML = instances.map(i => {
+          const sc = i.status === 'running' ? 'text-green-400' : 'text-gray-500';
+          const st = i.status === 'running' ? '運行中' : '已停止';
+          return '<a href="/instance/' + i.id + '" class="block"><div class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-800 transition">' +
+            '<div class="w-12 h-12 rounded-lg bg-yellow-900/40 flex items-center justify-center text-yellow-400"><span class="font-bold">LXC</span></div>' +
+            '<div class="flex-1"><div class="flex items-center gap-2"><span class="text-xl font-semibold">' + (i.name || '#' + i.id) + '</span>' +
+            '<span class="' + sc + ' text-sm">● ' + st + '</span><span class="bg-blue-900/40 text-blue-400 px-2 py-1 rounded text-xs">LXC</span></div>' +
+            '<div class="text-sm text-gray-400 mt-1">' + (i.cpu || '0.2') + ' CPU &nbsp;&nbsp; ' + (i.ram_mb || '256') + ' MB &nbsp;&nbsp; ' + (i.disk_gb || '5') + ' GB' +
+            ' &nbsp;&nbsp; IPv6: ' + (i.ipv6 || '—') + '</div></div><div class="text-gray-500"><i class="fa-solid fa-chevron-right"></i></div></div></a>';
+        }).join('');
+      } catch(e) {
+        document.getElementById('instance-list').innerHTML = '<div class="text-center text-red-400 py-8">載入失敗</div>';
+      }
+    }
+    loadInstances();
+  </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>帝云 - 轉移</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>body{background-color:#0f0f0f;color:#e0e0e0}.card-box{background-color:#18181b;border:1px solid #27272a}input{background-color:#27272a;border:1px solid #3f3f46;color:#e0e0e0;border-radius:8px;padding:10px 14px;width:100%;outline:none}input:focus{border-color:#4299e1}.btn-primary{background-color:white;color:black;padding:10px 24px;border-radius:8px;font-weight:500;display:inline-block}.btn-primary:hover{background-color:#e5e5e5}</style>
+</head>
+<body class="flex min-h-screen">
+  <aside class="w-64 bg-[#121212] border-r border-gray-800 flex-shrink-0 hidden md:block">
+    <div class="p-4 border-b border-gray-800"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center"><i class="fa-solid fa-cubes text-xl text-gray-300"></i></div><span class="text-lg font-medium">帝云</span></div></div>
+    <nav class="p-3">
+      <div class="mb-4 text-xs text-gray-500 uppercase tracking-wider">常用</div>
+      <a href="/dashboard" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-house w-5"></i><span>總覽</span></a>
+      <a href="/instances/create" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-plus w-5"></i><span>新增實例</span></a>
+      <a href="/instances" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-server w-5"></i><span>實例列表</span></a>
+      <a href="/wallet" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-wallet w-5"></i><span>錢包</span></a>
+      <a href="/transfer" class="sidebar-item active flex items-center gap-3 px-3 py-2 rounded mb-1" style="background-color:#222;border-left:3px solid #4299e1;"><i class="fa-solid fa-right-left w-5"></i><span>轉移</span></a>
+      <div class="mb-4 mt-6 text-xs text-gray-500 uppercase tracking-wider">系統</div>
+      <a href="/logout" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded mb-1 hover:bg-gray-800"><i class="fa-solid fa-right-from-bracket w-5"></i><span>登出</span></a>
+    </nav>
+  </aside>
+  <main class="flex-1 p-6 overflow-auto">
+    <div class="mb-8"><h1 class="text-3xl font-semibold">轉移</h1><p class="text-gray-400 mt-1">將實例或餘額轉移給其他使用者</p></div>
+    <div class="max-w-lg">
+      <div class="card-box p-6 rounded-xl mb-6">
+        <h2 class="text-lg font-medium mb-4">轉移餘額</h2>
+        <div class="mb-4"><label class="block text-sm text-gray-400 mb-1">目標 Email</label><input type="email" id="targetEmail" placeholder="user@example.com"></div>
+        <div class="mb-4"><label class="block text-sm text-gray-400 mb-1">金額</label><input type="number" id="amount" placeholder="0" min="1"></div>
+        <button class="btn-primary" onclick="alert('轉移功能開發中')">轉移</button>
+      </div>
+      <div class="card-box p-6 rounded-xl">
+        <h2 class="text-lg font-medium mb-4">轉移實例</h2>
+        <p class="text-gray-500 text-sm">選擇要轉移的實例給其他使用者。</p>
+        <button class="btn-primary mt-4" onclick="alert('轉移功能開發中')">選擇實例</button>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
