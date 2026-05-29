@@ -329,9 +329,9 @@ async def login_page(request: Request, verified: str = ""):
 
 
 @app.post("/login")
-async def login(request: Request, email: str = Form(...), password: str = Form(...)):
+async def login(request: Request, account: str = Form(...), password: str = Form(...)):
     async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute("SELECT id, password_hash FROM users WHERE email=?", (email,))
+        cursor = await db.execute("SELECT id, password_hash FROM users WHERE email=?", (account,))
         row = await cursor.fetchone()
         if row and bcrypt.verify(password, row[1]):
             cfg = load_smtp_config()

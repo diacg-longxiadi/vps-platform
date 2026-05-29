@@ -13,64 +13,50 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center px-4 py-10">
   <div class="mb-10 text-center">
+    <div class="mb-4">
+      <div class="w-20 h-20 mx-auto bg-gray-800 rounded-xl flex items-center justify-center">
+        <span class="text-4xl text-gray-400">◼️</span>
+      </div>
+    </div>
     <h1 class="text-3xl font-medium text-gray-100">laducnl 懷舊服</h1>
     <p class="mt-2 text-xl text-gray-400">登入</p>
   </div>
 
   <form id="loginForm" class="w-full max-w-lg border border-gray-700 rounded-xl p-8">
-    <!-- Email -->
     <div class="mb-6">
-      <label class="block mb-2 text-gray-300">電子郵件</label>
-      <input
-        type="email"
-        name="email"
-        required
-        placeholder="you@example.com"
-        class="input-box w-full px-4 py-3 rounded-lg text-gray-200"
-      />
+      <label class="block mb-2 text-gray-300">使用者名稱或電子郵件</label>
+      <input type="text" name="account" required placeholder="輸入使用者名稱或電子郵件" class="input-box w-full px-4 py-3 rounded-lg text-gray-200" />
     </div>
-
-    <!-- 密碼 -->
     <div class="mb-6">
       <label class="block mb-2 text-gray-300">密碼</label>
-      <input
-        type="password"
-        name="password"
-        required
-        placeholder="請輸入密碼"
-        class="input-box w-full px-4 py-3 rounded-lg text-gray-200"
-      />
+      <input type="password" name="password" required placeholder="輸入密碼" class="input-box w-full px-4 py-3 rounded-lg text-gray-200" />
     </div>
-
-    <!-- 登入按鈕 -->
-    <button
-      type="submit"
-      class="w-full bg-gray-800 hover:bg-gray-700 py-4 rounded-lg text-gray-400 font-medium"
-    >
-      登入
-    </button>
-
-    <p class="mt-6 text-center text-gray-500">
-      還沒有帳號？<a href="/register" class="text-blue-400">註冊</a>
-    </p>
+    <div class="mb-8">
+      <label class="block mb-2 text-gray-300">雙重驗證碼 <span class="text-gray-500">(選填)</span></label>
+      <input type="text" name="twofa_code" maxlength="6" placeholder="輸入 6 位驗證碼" class="input-box w-full px-4 py-3 rounded-lg text-gray-200" />
+      <p class="mt-2 text-sm text-gray-500">如果您啟用了雙重驗證，請輸入驗證碼</p>
+      <p class="mt-1 text-sm text-blue-400">無法存取驗證器？使用恢復碼</p>
+    </div>
+    <button type="submit" class="w-full bg-gray-800 hover:bg-gray-700 py-4 rounded-lg text-gray-400 font-medium">繼續</button>
   </form>
+
+  <div class="mt-10 text-center text-gray-400">
+    <p class="mb-3">還沒有帳號？<a href="/register" class="text-blue-400">註冊</a></p>
+    <p><a href="#" class="text-blue-400">忘記密碼</a></p>
+  </div>
 
   <script src="/static/auth.js"></script>
   <script>
     const form = document.getElementById("loginForm");
-
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const fd = new FormData(form);
       const data = Object.fromEntries(fd);
-
       const res = await postForm("/login", data);
       if (res.redirected) {
-        toast("登入成功", true);
-        location.href = res.url;
+        location.href = "/dashboard";
       } else {
-        const text = await res.text();
-        toast("登入失敗：帳號或密碼錯誤");
+        toast("帳密錯誤或雙重驗證碼不正確");
       }
     });
   </script>
