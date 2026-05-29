@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}VPS 平台 - 雲端主機{% endblock %}
+{% block content %}
+<div class="hero">
+  <h1>高效能雲端 VPS</h1>
+  <p>基於 Incus 容器技術，獨立 IPv6，彈性配置</p>
+  <div class="hero-actions">
+    <a href="/register" class="btn btn-lg">立即開始</a>
+    <a href="/login" class="btn btn-outline btn-lg">現有用戶登入</a>
+  </div>
+</div>
+<div class="features">
+  <div class="feature-card">
+    <div class="feature-icon">⚡</div>
+    <h3>快速部署</h3>
+    <p>一鍵建立容器，秒級啟動</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🔒</div>
+    <h3>獨立 IPv6</h3>
+    <p>每台主機獨立 IPv6 地址，全端口開放</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">📊</div>
+    <h3>即時監控</h3>
+    <p>CPU、記憶體、流量即時顯示</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🔄</div>
+    <h3>彈性配置</h3>
+    <p>自訂 CPU、RAM、儲存空間</p>
+  </div>
+</div>
+{% endblock %}

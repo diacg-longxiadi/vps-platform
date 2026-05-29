@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}VPS 平台{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">VPS 平台</a>
+    <div class="nav-links">
+      {% if user %}
+        <span class="nav-user">{{ user.email }}</span>
+        {% if user.is_admin %}<a href="/admin" class="nav-link">管理</a>{% endif %}
+        <a href="/dashboard" class="nav-link">主控台</a>
+        <a href="/logout" class="nav-link">登出</a>
+      {% else %}
+        <a href="/login" class="nav-link">登入</a>
+        <a href="/register" class="nav-link btn-primary">註冊</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+<main class="main">
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>
