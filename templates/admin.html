@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}管理員 - VPS 平台{% endblock %}
+{% block content %}
+<h1 style="font-size:1.3rem;margin-bottom:24px">管理員面板</h1>
+
+<div class="admin-section">
+  <h2>使用者 ({{ users|length }})</h2>
+  <table class="admin-table">
+    <thead><tr><th>ID</th><th>Email</th><th>管理員</th><th>點數</th><th>註冊時間</th></tr></thead>
+    <tbody id="userTable"></tbody>
+  </table>
+</div>
+
+<div class="admin-section">
+  <h2>所有主機</h2>
+  <table class="admin-table">
+    <thead><tr><th>ID</th><th>名稱</th><th>擁有者</th><th>狀態</th><th>IPv4</th><th>IPv6</th><th>CPU</th><th>RAM</th><th>建立時間</th><th>操作</th></tr></thead>
+    <tbody id="instanceTable"></tbody>
+  </table>
+</div>
+
+<script>
+async function loadData(){
+  try{
+    const [u,i]=await Promise.all([
+      fetch('/api/admin/users').then(r=>r.json()),
+      fetch('/api/admin/instances').then(r=>r.json())
+    ]);
+    document.getElementById('userTable').innerHTML=u.map(x=>
+      '<tr><td>'+x.id+'</td><td>'+x.email+'</td><td>'+(x.is_admin?'✅':'')+'</td><td>'+x.credits+'</td><td>'+x.created_at+'</td></tr>'
+    ).join('');
+    document.getElementById('instanceTable').innerHTML=i.map(x=>
+      '<tr><td>'+x.id+'</td><td>'+x.name+'</td><td>'+x.owner+'</td>'+
+      '<td><span class="status-badge '+(x.status=='running'?'running':'stopped')+'">'+x.status+'</span></td>'+
+      '<td style="font-size:.8rem">'+x.ipv4+'</td><td style="font-size:.75rem">'+x.ipv6+'</td>'+
+      '<td>'+x.cpu+'</td><td>'+x.ram_mb+'MB</td><td style="font-size:.8rem">'+x.created_at+'</td>'+
+      '<td><button class="btn btn-danger btn-sm" onclick="del('+x.id+')">刪除</button></td></tr>'
+    ).join('');
+  }catch(e){document.getElementById('userTable').innerHTML='<tr><td colspan="5">載入失敗</td></tr>'}
+}
+async function del(id){
+  if(!confirm('刪除此主機？'))return;
+  try{
+    await fetch('/api/instances/'+id+'/delete',{method:'POST'});
+    loadData();
+  }catch(e){alert('失敗')}
+}
+loadData();
+</script>
+{% endblock %}

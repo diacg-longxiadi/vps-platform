@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ inst.name }} - VPS 平台{% endblock %}
+{% block content %}
+<div class="detail-header">
+  <div>
+    <h1>{{ inst.name }}</h1>
+    <span class="status-badge {{ inst.status }}">{{ '● 運行中' if inst.status == 'running' else '● 已停止' }}</span>
+  </div>
+  <div style="display:flex;gap:8px">
+    {% if inst.status == 'stopped' %}
+    <button class="btn btn-primary btn-sm" onclick="action('start')">啟動</button>
+    {% elif inst.status == 'running' %}
+    <button class="btn btn-outline btn-sm" onclick="action('restart')">重啟</button>
+    <button class="btn btn-outline btn-sm" onclick="action('stop')">停止</button>
+    {% endif %}
+    <button class="btn btn-danger btn-sm" onclick="deleteInstance()">刪除</button>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="detail-card">
+    <h3>基本資訊</h3>
+    <div class="row"><span class="l">主機名稱</span><span class="v">{{ inst.name }}</span></div>
+    <div class="row"><span class="l">IPv4</span><span class="v">{{ inst.ipv4 }}</span></div>
+    <div class="row"><span class="l">IPv6</span><span class="v" style="font-size:.72rem">{{ inst.ipv6 }}</span></div>
+    <div class="row"><span class="l">Root 密碼</span><span class="v" style="font-family:monospace;font-size:.8rem">{{ inst.password }}</span></div>
+    <div class="row"><span class="l">建立時間</span><span class="v">{{ inst.created_at }}</span></div>
+  </div>
+  <div class="detail-card">
+    <h3>資源配置</h3>
+    <div class="row"><span class="l">CPU</span><span class="v">{{ inst.cpu }} 核心</span></div>
+    <div class="row"><span class="l">記憶體</span><span class="v">{{ inst.ram_mb }} MB</span></div>
+    <div class="row"><span class="l">儲存空間</span><span class="v">{{ inst.disk_gb }} GB</span></div>
+    <div class="row"><span class="l">流量配額</span><span class="v">{{ inst.quota_gb }} GB/月（僅計新流量）</span></div>
+  </div>
+</div>
+
+<div class="detail-card" style="margin-bottom:20px">
+  <h3>即時資源用量</h3>
+  <div id="liveMetrics">
+    <div class="loading">載入中...</div>
+  </div>
+</div>
+
+<div class="detail-card">
+  <h3>SSH 連線資訊</h3>
+  <pre style="background:var(--bg);padding:16px;border-radius:8px;margin-top:8px;font-size:.85rem;line-height:1.6;overflow-x:auto">
+# IPv4（需主機有公網 IP）
+ssh root@{{ inst.ipv4 }}
+
+# IPv6（全端口開放，建議使用）
+ssh root@{{ inst.ipv6 }}
+
+# 密碼
+{{ inst.password }}
+  </pre>
+</div>
+
+<script>
+async function fetchMetrics(){
+  {% if inst.status == 'running' %}
+  try{
+    const r=await fetch('/api/instances/{{ inst.id }}/metrics');
+    const d=await r.json();
+    const mem=d.memory||{}, cpu=d.cpu||{}, disk=d.disk||{}, net=d.network||{};
+    document.getElementById('liveMetrics').innerHTML=
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+      '<div><div class="l" style="font-size:.8rem;color:var(--muted)">CPU 用量</div><div style="font-size:1.2rem;font-weight:600">'+(cpu.usage?cpu.usage+'%':'—')+'</div></div>'+
+      '<div><div class="l" style="font-size:.8rem;color:var(--muted)">記憶體</div><div style="font-size:1.2rem;font-weight:600">'+(mem.usage?mem.usage+' / '+mem.total:'—')+'</div></div>'+
+      '<div><div class="l" style="font-size:.8rem;color:var(--muted)">儲存</div><div style="font-size:1.2rem;font-weight:600">'+(disk.usage?disk.usage+' / '+disk.total:'—')+'</div></div>'+
+      '<div><div class="l" style="font-size:.8rem;color:var(--muted)">行程數</div><div style="font-size:1.2rem;font-weight:600">'+(d.processes||'—')+'</div></div>'+
+      '</div>';
+  }catch(e){
+    document.getElementById('liveMetrics').innerHTML='<div style="color:var(--muted);font-size:.85rem">無法取得即時數據</div>';
+  }
+  {% else %}
+  document.getElementById('liveMetrics').innerHTML='<div style="color:var(--muted);font-size:.85rem">主機已停止，無即時數據</div>';
+  {% endif %}
+}
+
+async function action(a){
+  const f=new FormData();f.append('action',a);
+  try{
+    const r=await fetch('/api/instances/{{ inst.id }}/action',{method:'POST',body:f});
+    const d=await r.json();
+    if(d.status)location.reload();
+  }catch(e){alert('操作失敗: '+e.message)}
+}
+
+async function deleteInstance(){
+  if(!confirm('確定刪除此主機？此操作不可撤銷。'))return;
+  try{
+    const r=await fetch('/api/instances/{{ inst.id }}/delete',{method:'POST'});
+    const d=await r.json();
+    if(d.status=='deleted')location.href='/dashboard';
+  }catch(e){alert('刪除失敗: '+e.message)}
+}
+
+fetchMetrics();
+setInterval(fetchMetrics,10000);
+</script>
+{% endblock %}
